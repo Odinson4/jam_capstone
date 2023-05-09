@@ -67,7 +67,7 @@ const ChatGPT = () => {
           boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
           cursor: "pointer",
           transition: "all 0.3s ease",
-          background: showChat ? "#f44336" : "#4CAF50",
+          background: showChat ? "#53565A" : "#4CAF50",
           color: "#fff",
         }}
       >
@@ -86,6 +86,8 @@ const ChatGPT = () => {
             fontSize: "20px",
             border: "1px solid #ccc",
             borderRadius: "15px",
+            color: "#fff",
+            background: "#53565A"
           }}
         >
           <div className="chat-messages-container mb-2">
@@ -93,20 +95,31 @@ const ChatGPT = () => {
               <div
                 key={index}
                 style={{
-                  background: "#D3D3D3",
                   borderRadius: "15px",
                   padding: "8px",
                   margin: "6px 0",
+                  color: "#fff",
+                  background: "#53565A",
+                  border: "1px solid #fff",
                 }}
               >
-                <span style={{ color: "black" }}>
+                <span style={{ color: "white" }}>
                   {msg}
                 </span>
               </div>
             ))}
           </div>
           <form onSubmit={handleSubmit}>
-            <label htmlFor="chatInput" style={{ display: "block", marginBottom: "6px" }}>
+            <label
+              htmlFor="chatInput"
+              style={{
+                display: "block",
+                marginBottom: "6px",
+                fontWeight: "bold",
+                color: "#fff",
+                background: "#53565A"
+              }}
+            >
               Type your message:
             </label>
             <textarea
@@ -120,8 +133,10 @@ const ChatGPT = () => {
                 padding: "8px",
                 fontSize: "18px",
                 resize: "none",
-                border: "1px solid #ccc",
+                border: "1px solid #fff",
                 borderRadius: "10px",
+                color: "#fff",
+                background: "#53565A",
               }}
             />
             <button
@@ -134,7 +149,7 @@ const ChatGPT = () => {
                 boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                background: "#4CAF50",
+                // background: "#4CAF50",
                 color: "#fff",
               }}
             >
@@ -145,7 +160,6 @@ const ChatGPT = () => {
       )}
     </div>
   );
-
 };
 
 export default ChatGPT;

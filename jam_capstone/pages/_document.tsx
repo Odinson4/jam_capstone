@@ -10,6 +10,7 @@ class MyDocument extends Document {
         <Head>
           <Link rel="stylesheet" href="/_next/static/css/flowbite.min.css" />
           <Link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@editorjs/simple-image@latest/dist/simple-image.min.css" />
+          <Script src="https://cdn.jsdelivr.net/npm/editorjs-drag-drop" />
           <Script src="https://cdn.jsdelivr.net/npm/@editorjs/simple-image@latest/dist/bundle.js" />
         </Head>
         <body>

@@ -1,25 +1,30 @@
 import Code from "@editorjs/code";
 import Header from "@editorjs/header";
 import Paragraph from "@editorjs/paragraph";
-import Image from "@editorjs/image";
 import Checklist from "@editorjs/checklist";
 import List from "@editorjs/list";
 import Quote from "@editorjs/quote";
-import Warning from "@editorjs/warning";
-import Delimiter from "@editorjs/delimiter";
 import Table from "@editorjs/table";
 import LinkTool from "@editorjs/link";
-import Embed from "@editorjs/embed";
 import Marker from "@editorjs/marker";
 import InlineCode from "@editorjs/inline-code";
-import Raw from "@editorjs/raw";
-import React, { memo, useEffect, useState, useRef } from "react";
+import InlineImage from "editorjs-inline-image";
+import React, { useEffect, useState, useRef } from "react";
 import EditorJS from "@editorjs/editorjs";
 import { OutputData } from "@editorjs/editorjs";
 import { FiTrash2, FiEdit } from 'react-icons/fi';
-import { validate } from "jsonschema";
 import ChatGPT from "./ChatGPT";
-import SimpleImage from "@editorjs/simple-image";
+import Image from "next/image";
+import DragDrop from 'editorjs-drag-drop'
+import debounce from "lodash.debounce";
+
+// module.exports = {
+//   image: {
+//     domains: ['images.unsplash.com'],
+//   },
+// }
+
+
 // Define the available tools for the EditorJS instance
 const EDITOR_TOOLS = {
   code: {
@@ -35,7 +40,19 @@ const EDITOR_TOOLS = {
     class: Paragraph,
     inlineToolbar: true,
   },
-  image: Image,
+  image: {
+    class: InlineImage,
+    inlineToolbar: true,
+    config: {
+      embed: {
+        display: true,
+      },
+      unsplash: {
+        appName: 'Jam',
+        clientId: process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY,
+      }
+    }
+  },
   checklist: Checklist,
   list: List,
   quote: Quote,
@@ -43,7 +60,7 @@ const EDITOR_TOOLS = {
   // delimiter: Delimiter,
   table: Table,
   linkTool: LinkTool,
-  embed: Embed,
+  // embed: Embed,
   marker: Marker,
   inlineCode: InlineCode,
   // raw: Raw,
@@ -74,6 +91,7 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
   const ref = useRef<any>(); // Use any type for EditorJS
   const [blocks, setBlocks] = useState<any[]>([]);
   const [editingBlockId, setEditingBlockId] = useState(null);
+  const [input, setInput] = useState([]);
 
   console.log("currUser", currUser);
 
@@ -102,11 +120,14 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
   useEffect(() => {
     if (!ref.current) {
       const editor = new EditorJS({
+        // onReady: () => {
+        // new DragDrop(editor);
+        // },
         holder: holder,
         tools: EDITOR_TOOLS,
         data,
         async onChange(api, event) {
-          const data = await api.saver.save();
+          const data = await api.saver.save(event);
           onChange(data);
         },
       });
@@ -121,13 +142,17 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
   }, []);
 
   // Sanitize the content to remove specific HTML tags
-  const sanitizeContent = (content: string): string => {
-    if (!content) {
-      return ''; // Return empty string if content is undefined or null
-    }
-    const sanitizedContent = content.replace(/<\/?(b|i)>/g, ''); // Remove <b> and </b> tags, and <i> and </i> tags
-    return sanitizedContent;
-  };
+  // const sanitizeContent = (content: string): string => {
+  //   if (!content) {
+  //     return ''; // Return empty string if content is undefined or null
+  //   }
+  //   let sanitizedContent = content.replace(/<\/?(b|i)>/g, ''); // Remove <b> and </b> tags, and <i> and </i> tags
+  //   sanitizedContent = sanitizedContent.replace(/@@@(.*?)@@@/g, '<mark>$1</mark>'); // Replace @@@...@@@ with <mark>...</mark>
+  //   sanitizedContent = sanitizedContent.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>'); // Replace URLs with <a> tags
+  //   return sanitizedContent;
+  // };
+
+
 
   // Save the blocks to the server
   const handleSave = async () => {
@@ -190,25 +215,8 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
       console.log("ref.current", ref.current);
       console.log("savedData", savedData);
 
-      // Find the block to update
-      const blockToUpdate = savedData.blocks.find((block) => block.id === blockId);
-      if (!blockToUpdate) {
-        throw new Error(`Block with ID ${blockId} not found`);
-      }
-
       // Create a copy of the current state using the spread operator
       const updatedBlocks = [...blocks];
-
-      // Find the index of the block to update in the updatedBlocks array
-      const blockIndex = blocks.findIndex((block) => block.id === blockId);
-
-      // Update the specific block with the new data
-      updatedBlocks[blockIndex] = {
-        ...updatedBlocks[blockIndex],
-        blocks: [blockToUpdate], // wrap the block in an array
-        time: savedData.time,
-        version: savedData.version,
-      };
 
       // Update the state with the updated blocks
       setBlocks(updatedBlocks);
@@ -219,7 +227,11 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          blocks: blockToUpdate, // directly assign the updated block
+          blocks: {
+            data: { text: [input] },
+            id: blockId,
+            type: "paragraph",
+          }, // directly assign the updated block
           time: savedData.time,
           version: savedData.version,
           user_id: currUser.id,
@@ -237,12 +249,13 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
     }
   };
 
+  const handleInput = (e) => {
+    console.log("e.target.textContent", e.target.textContent);
 
-  const handleInput = () => {
-    console.log("handleInput");
-    const content = ref.current.innerHTML;
-    console.log("content", content);
-  };
+    setInput(e.target.textContent);
+
+  }
+
 
 
   const handleEdit = (blockId) => {
@@ -286,7 +299,7 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
 
   return (
     <>
-      <div id={holder} style={{ paddingLeft: '23vw', paddingRight: "7vw", paddingTop: "5vh" }}>
+      <div id={holder} style={{ paddingLeft: '24vw', paddingRight: "12vw", paddingTop: "7vh" }}>
         <ChatGPT />
         <button
           id="saveButton"
@@ -301,80 +314,86 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
           </span>
         </button>
         {blocks.map((block) => {
-          // console.log("block", block.id);
+          console.log("block", block.id);
+          // console.log("editingBlockId", editingBlockId);
           const innerBlocks = Array.isArray(block.blocks) ? block.blocks : [block.blocks];
           return innerBlocks.map((innerBlock) => {
+            console.log("innerBlock", innerBlock)
             const sanitizeText = (text) => {
               const temp = document.createElement("div");
               temp.textContent = text;
               return temp.innerHTML;
             };
 
-            const sanitizedText = sanitizeContent(innerBlock.data.text);
-            const sanitizedCaption = sanitizeContent(innerBlock.data.caption);
-            const sanitizedTitle = sanitizeContent(innerBlock.data.title);
-            const sanitizedMessage = sanitizeContent(innerBlock.data.message);
+            // const sanitizedText = sanitizeContent(innerBlock.data.text);
+            // const sanitizedCaption = sanitizeContent(innerBlock.data.caption);
+            // const sanitizedTitle = sanitizeContent(innerBlock.data.title);
+            // const sanitizedMessage = sanitizeContent(innerBlock.data.message);
+            const debouncedSave = debounce(handleUpdate, 1000);
 
             return (
-              <div key={`${block.id}-${innerBlock.id}`} id="editorjs">
+              <div key={`${block.id}-${innerBlock.id}`}
+                style={{ fontSize: "20px", lineHeight: "1.5", fontFamily: "Inter, sans-serif" }}
+                id="editorjs">
                 {innerBlock.type === "paragraph" && (
-                  <div
-                    className="editor-block editor-block--paragraph"
-                    style={{ paddingTop: "20px" }}
-                  // onChange={(e) => {
-                  //   handleInput();
-                  // }}
-                  // onClick={(e) => {
-                  //   e.preventDefault();
-                  //   setEditingBlockId((block.id));
-                  // }}
-                  // contentEditable="true" // Set contentEditable to true
-                  // ref={ref}
-                  // onInput={handleInput}
-                  >
+                  <div className="editor-block editor-block--paragraph" style={{ paddingTop: "30px" }}>
                     <h2
-                      className="editor-block__heading"
+                      contentEditable="true"
+                      // dangerouslySetInnerHTML={{ __html: innerBlock.data.text }}
+                      onBlur={() => debouncedSave(block.id)}
+                      onClick={() => setEditingBlockId(block.id)}
+                      onInput={handleInput}
+                      // onChange={(e) => {
+                      //   handleInput();
+                      // }}
                       // onClick={(e) => {
                       //   e.preventDefault();
-                      // setEditingBlockId((block.id));
+                      //   setEditingBlockId((block.id));
                       // }}
-                      contentEditable="true" // Set contentEditable to true
-
+                      // contentEditable="true" // Set contentEditable to true
+                      // ref={ref}
+                      // onInput={hand
+                      className="editor-block__heading"
                     >
-                      {innerBlock.data.text.includes("<b>") &&
-                        innerBlock.data.text.includes("</b>") &&
-                        innerBlock.data.text.includes("<i>") &&
-                        innerBlock.data.text.includes("</i>") ? (
-                        <span
-                          style={{ fontWeight: "bold", fontStyle: "italic" }}
-                          dangerouslySetInnerHTML={{
-                            __html: innerBlock.data.text
-                              .replace(/<\/?b>/g, "")
-                              .replace(/<\/?i>/g, "")
-                          }}
-                        />
-                      ) : innerBlock.data.text.includes("<b>") &&
-                        innerBlock.data.text.includes("</b>") ? (
-                        <span
-                          style={{ fontWeight: "bold" }}
-                          dangerouslySetInnerHTML={{
-                            __html: innerBlock.data.text
-                              .replace(/<\/?b>/g, "")
-                              .replace(/<\/?i>/g, "")
-                          }}
-                        />
-                      ) : innerBlock.data.text.includes("<i>") &&
-                        innerBlock.data.text.includes("</i>") ? (
-                        <span
-                          style={{ fontStyle: "italic" }}
-                          dangerouslySetInnerHTML={{
-                            __html: innerBlock.data.text
-                              .replace(/<\/?b>/g, "")
-                              .replace(/<\/?i>/g, "")
-                          }}
-                        />
+                      {innerBlock.data.text.includes("<b>") && innerBlock.data.text.includes("</b>") && innerBlock.data.text.includes("<i>") && innerBlock.data.text.includes("</i>") ? (
+                        <span style={{ fontWeight: "bold", fontStyle: "italic" }} dangerouslySetInnerHTML={{
+                          __html: innerBlock.data.text
+                            .replace(/<\/?b>/g, "")
+                            .replace(/<\/?i>/g, "")
+                            .replace(/<mark[^>]*>(.*?)<\/mark>/g, '<span style="background-color: yellow;">$1</span>')
+                            .replace(/<a[^>]*>(.*?)<\/a>/g, '$1')
+                        }} />
+                      ) : innerBlock.data.text.includes("<b>") && innerBlock.data.text.includes("</b>") ? (
+                        <span style={{ fontWeight: "bold" }} dangerouslySetInnerHTML={{
+                          __html: innerBlock.data.text
+                            .replace(/<\/?b>/g, "")
+                            .replace(/<\/?i>/g, "")
+                            .replace(/<mark[^>]*>(.*?)<\/mark>/g, '<span style="background-color: yellow;">$1</span>')
+                            .replace(/<a[^>]*>(.*?)<\/a>/g, '$1')
+                        }} />
+                      ) : innerBlock.data.text.includes("<i>") && innerBlock.data.text.includes("</i>") ? (
+                        <span style={{ fontStyle: "italic" }} dangerouslySetInnerHTML={{
+                          __html: innerBlock.data.text
+                            .replace(/<\/?b>/g, "")
+                            .replace(/<\/?i>/g, "")
+                            .replace(/<mark[^>]*>(.*?)<\/mark>/g, '<span style="background-color: yellow;">$1</span>')
+                            .replace(/<a[^>]*>(.*?)<\/a>/g, '$1')
+                        }} />
+                      ) : innerBlock.data.text.includes('<mark class="cdx-marker">') && innerBlock.data.text.includes("</mark>") ? (
+                        <span style={{ backgroundColor: "yellow" }} dangerouslySetInnerHTML={{
+                          __html: innerBlock.data.text
+                            .replace(/<mark[^>]*>/g, '<mark>')
+                            .replace(/<\/?b>/g, "")
+                            .replace(/<\/?i>/g, "")
+                            .replace(/<mark>(.*?)<\/mark>/g, '<span style="background-color: yellow;">$1</span>')
+                            .replace(/<a[^>]*>(.*?)<\/a>/g, '$1')
+                        }} />
                       ) : (
-                        innerBlock.data.text
+                        <span dangerouslySetInnerHTML={{
+                          __html: innerBlock.data.text
+                          // .replace(/<a href="(.*?)">(.*?)<\/a>/g, '<a href="$1" target="_blank">$2</a>')
+                          // .replace(/<mark[^>]*>(.*?)<\/mark>/g, '<span style="background-color: yellow;">$1</span>')
+                        }} />
                       )}
                     </h2>
                   </div>
@@ -430,7 +449,7 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
                               updatedItems[index].checked = event.target.checked;
                             }}
                           />
-                          {sanitizedText}
+                          {/* {sanitizedText} */}
                         </li>
                       ))}
                     </ul>
@@ -472,19 +491,51 @@ const EditorBlock = ({ data, onChange, holder, currUser }: Props) => {
                 {innerBlock.type === "quote" && (
                   <div className="editor-block editor-block--quote" style={{ paddingTop: "20px" }}>
                     <blockquote className="editor-block__quote">
-                      <p>{sanitizedText}</p>
-                      <cite>{sanitizedCaption}</cite>
+                      {/* <p>{sanitizedText}</p>
+                      <cite>{sanitizedCaption}</cite> */}
                     </blockquote>
                   </div>
                 )}
                 {innerBlock.type === "warning" && (
                   <div className="editor-block editor-block--warning" style={{ paddingTop: "20px" }}>
                     <div className="cdx-block cdx-warning">
-                      <p className="cdx-input cdx-warning__title">{sanitizedTitle}</p>
-                      <p className="cdx-input cdx-warning__message">{sanitizedMessage}</p>
+                      {/* <p className="cdx-input cdx-warning__title">{sanitizedTitle}</p>
+                      <p className="cdx-input cdx-warning__message">{sanitizedMessage}</p> */}
                     </div>
                   </div>
                 )}
+                {innerBlock?.type === "image" && (
+                  <div className="ce-block" style={{ paddingTop: "20px" }}>
+                    <div className="cdx-block inline-image">
+                      <div className="inline-image__picture">
+                        {innerBlock?.data && (
+                          <Image
+                            src={innerBlock.data.url}
+                            alt={innerBlock.data.caption}
+                            width={500}
+                            height={500}
+                          />
+                        )}
+                      </div>
+                      {/* <div className="image-tool__caption">{sanitizedCaption}</div> */}
+                    </div>
+                  </div>
+                )}
+                {innerBlock.type === "linkTool" && (
+                  <div className="editor-block editor-block--link" style={{
+                    paddingTop: "20px",
+                    color: "blue"
+                  }}>
+                    <div className="cdx-block cdx-link">
+                      {innerBlock?.data && (
+                        <a href={innerBlock.data.link}>
+                          {innerBlock.data.meta.title || innerBlock.data.link}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <button type="button" onClick={() => {
                   handleEdit(block.id)
                   console.log("block.id", block.id)

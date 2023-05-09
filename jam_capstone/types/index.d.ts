@@ -25,3 +25,7 @@ declare module '@editorjs/editorjs';
 declare module '@editorjs/inline-editor';
 declare module '@editorjs-text-color-plugin';
 declare module '@editorjs/simple-image';
+declare module '@editorjs/unsplash';
+declare module 'editorjs-drag-drop';
+declare module 'editorjs-inline-image';
+declare module 'lodash.debounce';
