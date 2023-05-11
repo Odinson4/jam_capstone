@@ -2,6 +2,8 @@ import type { NextPage } from "next";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import 'tailwindcss/tailwind.css';
+
 
 
 const EditorBlock = dynamic(() => import("../components/EditorBlock"), {

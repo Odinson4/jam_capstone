@@ -128,7 +128,8 @@ class AllFolders(Resource):
         data = request.get_json()
         new_folder = Folders(
             name=data['name'],
-            user_id=data['user_id']
+            user_id=data['user_id'],
+            Blocks=data['Blocks']
         )
         db.session.add(new_folder)
         db.session.commit()
@@ -191,6 +192,7 @@ class AllBlocks(Resource):
                 'time': block.time,
                 'version': block.version,
                 'user_id': block.user_id,
+                'folder_id': block.folder_id
             }
             blocks_list.append(block_info)
 
@@ -203,6 +205,7 @@ class AllBlocks(Resource):
         time_data = data.get('time')
         version_data = data.get('version')
         user_id = data.get('user_id')
+        folder_id = data.get('folder_id')
 
         blocks = []
         for block_item in blocks_data:
@@ -210,7 +213,8 @@ class AllBlocks(Resource):
                 blocks=json.dumps(block_item),
                 time=time_data,
                 version=version_data,
-                user_id=user_id
+                user_id=user_id,
+                folder_id=folder_id
             )
             db.session.add(block)
             blocks.append(block)
@@ -231,6 +235,7 @@ class AllBlocks(Resource):
                 'time': block.time,
                 'version': block.version,
                 'user_id': block.user_id,
+                'folder_id': block.folder_id
             }
             blocks_list.append(block_info)
 
@@ -257,6 +262,7 @@ class BlocksById(Resource):
         time_data = data.get('time')
         version_data = data.get('version')
         user_id = data.get('user_id')
+        folder_id = data.get('folder_id')
 
         block = Blocks.query.get(block_id)
         if not block:
@@ -285,6 +291,7 @@ class BlocksById(Resource):
             'time': block.time,
             'version': block.version,
             'user_id': block.user_id,
+            'folder_id': block.folder_id
         }
 
         blocks_list.append(block_info)
@@ -308,61 +315,6 @@ class BlocksById(Resource):
 
 
 api.add_resource(BlocksById, '/blocks/<int:block_id>')
-
-
-class AllTemplates(Resource):
-    def get(self):
-        templates = Templates.query.all()
-        templates_list = [templates.to_dict() for templates in templates]
-        response = make_response(jsonify(templates_list), 200)
-
-        return response
-
-    def post(self):
-        data = request.get_json()
-        new_template = Templates(
-            title=data['title'],
-            body=data['body'],
-            user_id=data['user_id']
-        )
-        db.session.add(new_template)
-        db.session.commit()
-        response = make_response(jsonify(new_template.to_dict()), 201)
-
-        return response
-
-
-api.add_resource(AllTemplates, '/templates')
-
-
-class TemplatesById(Resource):
-    def get(self, id):
-        template = Templates.query.get(id)
-        response = make_response(jsonify(template.to_dict()), 200)
-
-        return response
-
-    def patch(self, id):
-        data = request.get_json()
-        template = Templates.query.get(id)
-        template.title = data['title']
-        template.body = data['body']
-        template.user_id = data['user_id']
-        db.session.commit()
-        response = make_response(jsonify(template.to_dict()), 200)
-
-        return response
-
-    def delete(self, id):
-        template = Templates.query.get(id)
-        db.session.delete(template)
-        db.session.commit()
-        response = make_response(jsonify(template.to_dict()), 200)
-
-        return response
-
-
-api.add_resource(TemplatesById, '/templates/<int:id>')
 
 
 class Login(Resource):

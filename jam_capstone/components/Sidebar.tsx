@@ -5,6 +5,12 @@ import { useRouter } from "next/router";
 interface HomeProps {
   loggedIn: boolean;
   currUser: any;
+  folders: Folder[];
+}
+
+interface Folder {
+  name: string;
+  blocks: any[];
 }
 
 interface User {
@@ -19,8 +25,17 @@ const Sidebar = ({ currUser, loggedIn }: HomeProps) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-
+  const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [folderMenuOpen, setFolderMenuOpen] = useState(false);
   const router = useRouter();
+
+
+  const handleToggleFolderDropdown = () => {
+    setFolderMenuOpen(!folderMenuOpen);
+  };
+
+
 
   const handleToggleDropdown = () => {
     setUserMenuOpen(!userMenuOpen);
@@ -45,21 +60,21 @@ const Sidebar = ({ currUser, loggedIn }: HomeProps) => {
     }
   };
 
-  // const fetchUser = async () => {
-  //   try {
-  //     const res = await fetch(`/users/${currUser.id}`);
-  //     if (res.ok) {
-  //       const data = await res.json();
-  //       setUser(data.user);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`/users/${currUser.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  // useEffect(() => {
-  //   fetchUser();
-  // }, [currUser]);
+  useEffect(() => {
+    fetchUser();
+  }, [currUser]);
 
   const handleShowForm = () => {
     setShowEditForm(!showEditForm);
@@ -103,7 +118,6 @@ const Sidebar = ({ currUser, loggedIn }: HomeProps) => {
       setIsLoading(false);
     }
   };
-
 
 
   return (
@@ -255,17 +269,38 @@ const Sidebar = ({ currUser, loggedIn }: HomeProps) => {
             </li>
             <li>
               <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
-                <svg aria-hidden="true" className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                <span className="ml-3">Dashboard</span>
-              </a>
-            </li>
-            <li>
-              <a href="#" className="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">
                 <svg aria-hidden="true" className="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fillRule="evenodd" clipRule="evenodd" d="M16.6666 5.83333H8.33328L6.66661 4.16667H3.33328C2.40661 4.16667 1.66661 4.90667 1.66661 5.83333L1.66661 14.1667C1.66661 15.0933 2.40661 15.8333 3.33328 15.8333H16.6666C17.5933 15.8333 18.3333 15.0933 18.3333 14.1667V7.5C18.3333 6.57333 17.5933 5.83333 16.6666 5.83333ZM16.6666 14.1667H3.33328V7.5H16.6666L16.6666 14.1667Z" />
                 </svg>
                 <span className="ml-3">Folders</span>
               </a>
+              <button
+                data-drawer-target="folder-sidebar"
+                data-drawer-toggle="folder-sidebar"
+                aria-controls="folder-sidebar"
+                type="button"
+                className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                onClick={() => setFolderMenuOpen(!folderMenuOpen)}
+              >
+                <span className="sr-only">Open folder menu</span>
+                <svg
+                  className="w-6 h-6"
+                  aria-hidden="true"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    clipRule="evenodd"
+                    fillRule="evenodd"
+                    d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"
+                  ></path>
+                  <path
+                    d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"
+                  ></path>
+                </svg>
+              </button>
+
             </li>
           </ul>
         </div>

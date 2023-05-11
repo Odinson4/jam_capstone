@@ -32,6 +32,7 @@
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",
     "contenteditable": "^0.3.0",
+    "editorjs-text-alignment-blocktune": "^1.0.3",
     "eslint": "8.39.0",
     "eslint-config-next": "13.3.1",
     "flowbite": "^1.6.5",
@@ -54,6 +55,10 @@
     "@types/node": "18.7.23",
     "@types/react": "18.0.21",
     "@types/react-dom": "18.0.6",
+    "editorjs-inline-color": "^0.0.2",
+    "editorjs-inline-font-family-tool": "^1.0.4",
+    "editorjs-inline-font-size-tool": "^1.0.1",
+    "editorjs-text-color-plugin": "^2.0.2",
     "eslint": "8.24.0",
     "eslint-config-next": "12.3.1",
     "typescript": "4.8.4"

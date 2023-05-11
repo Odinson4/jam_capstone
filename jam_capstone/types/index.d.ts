@@ -29,3 +29,7 @@ declare module '@editorjs/unsplash';
 declare module 'editorjs-drag-drop';
 declare module 'editorjs-inline-image';
 declare module 'lodash.debounce';
+declare module 'editorjs-inline-font-family-tool';
+declare module 'editorjs-inline-font-size-tool';
+declare module 'editorjs-text-color-plugin';
+declare module 'editorjs-text-alignment-blocktune';

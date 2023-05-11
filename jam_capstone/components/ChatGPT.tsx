@@ -55,19 +55,21 @@ const ChatGPT = () => {
   };
 
   return (
-    <div>
+    <div style={{
+      paddingRight: "20vw",
+      marginRight: "20vw",
+    }}>
       <button
         onClick={handleToggleChat}
         style={{
           marginBottom: "10px",
           fontSize: "16px",
           padding: "8px 12px",
-          borderRadius: "4px",
-          border: "none",
+          borderRadius: "15px",
           boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
           cursor: "pointer",
-          transition: "all 0.3s ease",
-          background: showChat ? "#53565A" : "#4CAF50",
+          transition: "all 0.5s ease",
+          background: showChat ? "#53565A" : "#1E3A8A",
           color: "#fff",
         }}
       >
@@ -76,38 +78,53 @@ const ChatGPT = () => {
       {showChat && (
         <div
           style={{
-            boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
-            width: "70vw",
+            transition: "opacity 0.5s, transform 0.5s",
+            opacity: showChat ? 1 : 0,
+            transform: showChat ? "translateY(0)" : "translateY(20px)",
+            boxShadow: "0px 3px 3px 0px rgba(0, 0, 0, .15)",
+            width: "50vw",
             height: "25vh",
             overflow: "auto",
             padding: "10px",
             margin: "10px",
-            marginBottom: "20px",
+            marginBottom: "5vh",
+            marginRight: "12vw",
+            marginLeft: "6vw",
+            paddingRight: "7vw",
+            paddingLeft: "7vw",
+            borderRadius: "20px",
+            color: "#1E3A8A",
+            background: "#F4F4F4",
             fontSize: "20px",
-            border: "1px solid #ccc",
-            borderRadius: "15px",
-            color: "#fff",
-            background: "#53565A"
           }}
         >
           <div className="chat-messages-container mb-2">
-            {chatHistory.map((msg, index) => (
-              <div
-                key={index}
-                style={{
-                  borderRadius: "15px",
-                  padding: "8px",
-                  margin: "6px 0",
-                  color: "#fff",
-                  background: "#53565A",
-                  border: "1px solid #fff",
-                }}
-              >
-                <span style={{ color: "white" }}>
-                  {msg}
-                </span>
-              </div>
-            ))}
+            {chatHistory.map((msg, index) => {
+              const role = index % 2 === 0 ? "user" : "assistant";
+              const textAlign = role === "user" ? "right" : "left";
+              const backgroundColor = role === "user" ? "#E6E6E6" : "#F4F4F4";
+              const color = role === "user" ? "#1E3A8A" : "#333";
+              return (
+                <div
+                  key={index}
+                  style={{
+                    paddingRight: "20vw",
+                    paddingLeft: "20vw",
+                    borderRadius: "15px",
+                    padding: "8px",
+                    margin: "6px 0",
+                    textAlign,
+                    color,
+                    background: backgroundColor,
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <span style={{ color }}>
+                    {msg}
+                  </span>
+                </div>
+              );
+            })}
           </div>
           <form onSubmit={handleSubmit}>
             <label
@@ -116,11 +133,10 @@ const ChatGPT = () => {
                 display: "block",
                 marginBottom: "6px",
                 fontWeight: "bold",
-                color: "#fff",
-                background: "#53565A"
+                color: "#1E3A8A",
               }}
             >
-              Type your message:
+              Type Anything Here
             </label>
             <textarea
               id="chatInput"
@@ -131,12 +147,12 @@ const ChatGPT = () => {
                 width: "100%",
                 marginBottom: "10px",
                 padding: "8px",
-                fontSize: "18px",
+                fontSize: "20px",
                 resize: "none",
-                border: "1px solid #fff",
+                border: "1px solid #ccc",
                 borderRadius: "10px",
-                color: "#fff",
-                background: "#53565A",
+                color: "#1E3A8A",
+                background: "#F4F4F4",
               }}
             />
             <button
@@ -144,22 +160,27 @@ const ChatGPT = () => {
               style={{
                 fontSize: "16px",
                 padding: "8px 12px",
-                borderRadius: "4px",
+                borderRadius: "15px",
                 border: "none",
                 boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                // background: "#4CAF50",
+                background: "#1E3A8A",
                 color: "#fff",
               }}
             >
               Send
             </button>
+
           </form>
         </div>
+
       )}
     </div>
+
   );
+
 };
+
 
 export default ChatGPT;
